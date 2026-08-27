@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Javascript Web Output #3</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+            color: black;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        button {
+            padding: 4px 8px;
+            margin-right: 5px;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            border: 1px solid #aaa;
+            border-radius: 2px;
+        }
+
+        button:hover {
+            background-color: #ddd;
+        }
+
+        .api-link {
+            margin-top: 12px;
+            margin-bottom: 8px;
+        }
+
+        .api-link a {
+            color: #551a8b;
+            text-decoration: underline;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 570px;
+            max-width: 100%;
+            margin-top: 5px;
+        }
+
+        th,
+        td {
+            border: 1px solid #999;
+            padding: 7px 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            font-weight: bold;
+        }
+
+        .completed {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-completed {
+            color: red;
+            font-weight: bold;
+        }
+
+        #message {
+            margin-top: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Javascript Web Output #3</h1>
+
+    <button id="loadBtn">Load data from API</button>
+    <button id="clearBtn">Clear Table</button>
+
+    <div class="api-link">
+        API:
+        <a href="https://jsonplaceholder.typicode.com/todos/" target="_blank">
+            https://jsonplaceholder.typicode.com/todos/
+        </a>
+    </div>
+
+    <table id="todoTable">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Task ID</th>
+                <th>Title</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody id="tableBody">
+            <!-- Data will appear here -->
+        </tbody>
+    </table>
+
+    <p id="message"></p>
+
+    <script>
+        const API_URL = "https://jsonplaceholder.typicode.com/todos/";
+
+        const loadBtn = document.getElementById("loadBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const tableBody = document.getElementById("tableBody");
+        const message = document.getElementById("message");
+
+        // Load data when the button is clicked
+        loadBtn.addEventListener("click", loadData);
+
+        // Clear the table
+        clearBtn.addEventListener("click", clearTable);
+
+        async function loadData() {
+
+            // Check if data already exists in localStorage
+            const savedData = localStorage.getItem("todoData");
+
+            if (savedData) {
+                message.textContent =
+                    "Data has already been loaded once. The program will not load the API again.";
+
+                displayData(JSON.parse(savedData));
+                return;
+            }
+
+            try {
+                loadBtn.disabled = true;
+                message.textContent = "Loading data from API...";
+
+                const response = await fetch(API_URL);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data.");
+                }
+
+                const data = await response.json();
+
+                // Save API data to localStorage
+                localStorage.setItem("todoData", JSON.stringify(data));
+
+                // Display the data
+                displayData(data);
+
+                message.textContent =
+                    "Data loaded successfully and saved to local storage.";
+
+            } catch (error) {
+                console.error(error);
+                message.textContent =
+                    "Error loading data from the API.";
+            }
+
+            loadBtn.disabled = false;
+        }
+
+        function displayData(data) {
+
+            // Clear existing rows
+            tableBody.innerHTML = "";
+
+            data.forEach(todo => {
+
+                const row = document.createElement("tr");
+
+                const userId = document.createElement("td");
+                userId.textContent = todo.userId;
+
+                const taskId = document.createElement("td");
+                taskId.textContent = todo.id;
+
+                const title = document.createElement("td");
+                title.textContent = todo.title;
+
+                const status = document.createElement("td");
+
+                if (todo.completed) {
+                    status.textContent = "Completed";
+                    status.className = "completed";
+                } else {
+                    status.textContent = "Not yet Completed";
+                    status.className = "not-completed";
+                }
+
+                row.appendChild(userId);
+                row.appendChild(taskId);
+                row.appendChild(title);
+                row.appendChild(status);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function clearTable() {
+
+            tableBody.innerHTML = "";
+
+            message.textContent = "Table cleared.";
+
+            // Note:
+            // We intentionally DO NOT remove localStorage.
+            // This means the API will still not be loaded again.
+        }
+    </script>
+
+</body>
+</html>
